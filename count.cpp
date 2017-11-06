@@ -1,20 +1,15 @@
 #include<opencv2/highgui/highgui.hpp>
 #include<opencv2/imgproc/imgproc.hpp>
+#include<opencv2/photo/photo.hpp>
 #include<bits/stdc++.h>
 
 using namespace cv;
 using namespace std;
 
 Mat img, gs, hsv;
-int main(){
-	
 
-	//img = Mat::zeros(100, 1000, CV_8U);
-
-	
-	img = imread("Blood Images Dataset/image_150310_001.JPG");
-	// imshow("load", img);
-	cvtColor(img, img, CV_RGB2GRAY);
+void count(Mat img)
+{
 
 	for (int i=0; i<img.rows; i++)
 		for (int j=0; j<img.cols; j++)
@@ -57,6 +52,35 @@ int main(){
 	// Show blobs
 	imshow("thresh", dist );
 	cout<<contours.size()<<endl;
+}
+int main(){
+	
+
+	//img = Mat::zeros(100, 1000, CV_8U);
+	
+	img = imread("Blood Images Dataset/image_150310_001.JPG");
+	Mat hsv, img2 = img.clone();
+	cvtColor(img, hsv, CV_BGR2HSV);
+	cvtColor(img, img, CV_RGB2GRAY);
+	cvtColor(img2, img2, CV_RGB2GRAY);
+
+	for (int i=0;i<hsv.rows; i++)
+		for (int j=0; j<hsv.cols; j++)
+			if(int(hsv.at<Vec3b>(i,j)[0]) > 140 && int(hsv.at<Vec3b>(i,j)[0]) < 159 && int(hsv.at<Vec3b>(i,j)[0]) > 126 && int(hsv.at<Vec3b>(i,j)[0]) < 142)
+			{
+				img2.at<uchar>(i,j) = 255;
+				img.at<uchar>(i,j) = 0;
+			}
+			else
+				img2.at<uchar>(i,j) = 0;
+	fastNlMeansDenoising(img2, img2, 3, 7);
+	namedWindow("load",WINDOW_NORMAL);
+	resizeWindow("load", 600,600);
+	imshow("load", img2);
+	cout<<"RBC: "; count(img);
+	cout<<"WBC: "; count(img2);
+	cout<<endl;
+
 
 	// gs = Mat::zeros(img.size(), CV_8U);
 	// cvtColor(img, hsv, CV_RGB2HSV);

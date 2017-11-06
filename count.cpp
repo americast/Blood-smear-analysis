@@ -53,12 +53,12 @@ void count(Mat img)
 	imshow("thresh", dist );
 	cout<<contours.size()<<endl;
 }
-int main(){
+int main(int argc, char *argv[]){
 	
 
 	//img = Mat::zeros(100, 1000, CV_8U);
 	
-	img = imread("Blood Images Dataset/image_150310_001.JPG");
+	img = imread(argv[1]);
 	Mat hsv, img2 = img.clone();
 	cvtColor(img, hsv, CV_BGR2HSV);
 	cvtColor(img, img, CV_RGB2GRAY);

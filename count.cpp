@@ -11,18 +11,12 @@ Mat img, gs, hsv;
 void count(Mat img)
 {
 
-	for (int i=0; i<img.rows; i++)
-		for (int j=0; j<img.cols; j++)
-			if (img.at<uchar>(i,j)>180)
-				img.at<uchar>(i,j) = 0;
-			else
-				img.at<uchar>(i,j) = 255;
-
-
 	Mat dist;
 	distanceTransform(img, dist, CV_DIST_L2, 3);
 	normalize(dist, dist, 0.0, 1.0, NORM_MINMAX);
-	// imshow("normalized", dist);
+	namedWindow("normalized",WINDOW_NORMAL);
+	resizeWindow("normalized", 600,600);
+	imshow("normalized", dist);
 	namedWindow("thresh",WINDOW_NORMAL);
 	resizeWindow("thresh", 600,600);
 	// imwrite("thresh.jpg",thresh);
@@ -57,26 +51,51 @@ int main(int argc, char *argv[]){
 	
 
 	//img = Mat::zeros(100, 1000, CV_8U);
-	
-	img = imread(argv[1]);
+	if (argc>1)
+		img = imread(argv[1]);
+	else
+		img = imread("Blood Images Dataset/image_150310_008.JPG");
 	Mat hsv, img2 = img.clone();
+	Mat sat = img.clone();
+	Mat org = img.clone();
 	cvtColor(img, hsv, CV_BGR2HSV);
 	cvtColor(img, img, CV_RGB2GRAY);
 	cvtColor(img2, img2, CV_RGB2GRAY);
+	cvtColor(sat, sat, CV_RGB2GRAY);
+
+	GaussianBlur(img,img, Size(3, 3), 0, 0);
+	GaussianBlur(img2,img2, Size(9, 9), 0, 0);
 
 	for (int i=0;i<hsv.rows; i++)
 		for (int j=0; j<hsv.cols; j++)
-			if(int(hsv.at<Vec3b>(i,j)[0]) > 140 && int(hsv.at<Vec3b>(i,j)[0]) < 159 && int(hsv.at<Vec3b>(i,j)[0]) > 126 && int(hsv.at<Vec3b>(i,j)[0]) < 142)
+		{
+			sat.at<uchar>(i,j) = hsv.at<Vec3b>(i,j)[1];
+			if(int(sat.at<uchar>(i,j)>50))
 			{
 				img2.at<uchar>(i,j) = 255;
 				img.at<uchar>(i,j) = 0;
 			}
 			else
 				img2.at<uchar>(i,j) = 0;
+		}
+
+
 	fastNlMeansDenoising(img2, img2, 3, 7);
-	namedWindow("load",WINDOW_NORMAL);
-	resizeWindow("load", 600,600);
-	imshow("load", img2);
+	GaussianBlur(img2,img2, Size(71, 71), 0, 0);
+	// medianBlur(img2,img2,5);
+
+	namedWindow("sat",WINDOW_NORMAL);
+	resizeWindow("sat", 600,600);
+	imshow("sat", img2);
+
+	for (int i=0; i<img.rows; i++)
+		for (int j=0; j<img.cols; j++)
+			if (img.at<uchar>(i,j)>180)
+				img.at<uchar>(i,j) = 0;
+			else
+				img.at<uchar>(i,j) = 255;
+
+
 	cout<<"RBC: "; count(img);
 	cout<<"WBC: "; count(img2);
 	cout<<endl;

@@ -2,11 +2,17 @@
 #include<opencv2/imgproc/imgproc.hpp>
 #include<opencv2/photo/photo.hpp>
 #include<bits/stdc++.h>
+#define NORMALISE_THRESH_WBC	.4
+#define NORMALISE_THRESH_RBC	.34
+#define LOW_LUM_COUNT		120
+#define GREEN_INTENSITY_RBC	145
+#define INTENSITY_RBC 		180
+#define SATURATION_WBC 		50
+#define BLUR_DIM_WBC 		71
+#define BLUR_DIM_RBC 		11
 
 using namespace cv;
 using namespace std;
-
-Mat img, gs, hsv;
 
 int count(Mat img, int type=0)
 {
@@ -14,68 +20,51 @@ int count(Mat img, int type=0)
 	Mat dist;
 	distanceTransform(img, dist, CV_DIST_L2, 3);
 	normalize(dist, dist, 0.0, 1.0, NORM_MINMAX);
-	namedWindow("normalized",WINDOW_NORMAL);
-	resizeWindow("normalized", 600,600);
-	imshow("normalized", dist);
-	namedWindow("thresh",WINDOW_NORMAL);
-	resizeWindow("thresh", 600,600);
+	// namedWindow("normalized",WINDOW_NORMAL);
+	// resizeWindow("normalized", 600,600);
+	// imshow("normalized", dist);
+	// namedWindow("thresh",WINDOW_NORMAL);
+	// resizeWindow("thresh", 600,600);
 	// imwrite("thresh.jpg",thresh);
 	Mat dist2 = dist.clone();
 	if (type)
-		threshold(dist, dist, .4, 1., CV_THRESH_BINARY);
+		threshold(dist, dist, NORMALISE_THRESH_WBC, 1., CV_THRESH_BINARY);
 	else
 	{
-		threshold(dist, dist, .34, 1., CV_THRESH_BINARY);
-		threshold(dist2, dist2, .4, 1., CV_THRESH_BINARY);
+		threshold(dist, dist, NORMALISE_THRESH_RBC, 1., CV_THRESH_BINARY);
+		threshold(dist2, dist2, NORMALISE_THRESH_WBC, 1., CV_THRESH_BINARY);
 	}
 
-	// for (int i =0; i< dist.rows; i++)
-	// 	for (int j=0; j<dist.cols; j++)
-	// 		if (dist.at<uchar>(i,j)>0.3)
-	// 			dist.at<uchar>(i,j)=1;
-	// 		else
-	// 			dist.at<uchar>(i,j)=0;
-	imshow("thresh", dist);
-	// cvtColor(dist, dist, CV_BGR2GRAY);
+	// imshow("thresh", dist);
 	Mat now;
 	Mat now2;
 
 	dist.convertTo(now, CV_8U);
 	dist2.convertTo(now2, CV_8U);
-	// cvtColor(dist, dist, CV_BGR2GRAY);
 
 	vector<vector<Point> > contours;
 	vector<vector<Point> > contours2;
 	vector<Vec4i> hierarchy;
 	vector<Vec4i> hierarchy2;
-	// RNG rng(12345);
 	findContours( now, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
 	findContours( now2, contours2, hierarchy2, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
 
-	// Ptr<SimpleBlobDetector> detector = SimpleBlobDetector::create();
-	// // Detect blobs.
-	// std::vector<KeyPoint> keypoints;
-	// detector->detect(img_bw, keypoints);
-
-	// // Draw detected blobs as red circles.
-	// // DrawMatchesFlags::DRAW_RICH_KEYPOINTS flag ensures the size of the circle corresponds to the size of blob
-	// Mat im_with_keypoints;
-	// drawKeypoints( dist, keypoints, im_with_keypoints, Scalar(0,0,255), DrawMatchesFlags::DRAW_RICH_KEYPOINTS );
 	 
 	// Show blobs
-	imshow("thresh", dist );
-	cout<<"contours "<<contours.size()<<" "<<contours2.size()<<endl;
-	if (contours2.size() > 120)
+	// imshow("thresh", dist );
+	// cout<<"contours "<<contours.size()<<" "<<contours2.size()<<endl;
+	if (contours2.size() > LOW_LUM_COUNT)
 		return contours2.size();
 	if (contours.size() > contours2.size())
 		return contours.size();
 	else
 		return contours2.size();
 }
-int main(int argc, char *argv[]){
-	
 
-	//img = Mat::zeros(100, 1000, CV_8U);
+
+int main(int argc, char *argv[])
+{	
+	Mat img;
 	if (argc>1)
 		img = imread(argv[1]);
 	else
@@ -113,17 +102,17 @@ int main(int argc, char *argv[]){
 
 
 	fastNlMeansDenoising(wbc, wbc, 3, 7);
-	GaussianBlur(wbc,wbc, Size(71, 71), 0, 0);
+	GaussianBlur(wbc,wbc, Size(BLUR_DIM_WBC, BLUR_DIM_WBC), 0, 0);
 	// medianBlur(wbc,wbc,5);
 
-	namedWindow("sat",WINDOW_NORMAL);
-	resizeWindow("sat", 600,600);
-	imshow("sat", wbc);
+	// namedWindow("sat",WINDOW_NORMAL);
+	// resizeWindow("sat", 600,600);
+	// imshow("sat", wbc);
 
 	Mat rbc2 = rbc1.clone();
 	for (int i=0; i<rbc1.rows; i++)
 		for (int j=0; j<rbc1.cols; j++)
-			if (org.at<Vec3b>(i,j)[1]<145 && rbc1.at<uchar>(i,j)!=0)
+			if (org.at<Vec3b>(i,j)[1]<GREEN_INTENSITY_RBC && rbc1.at<uchar>(i,j)!=0)
 				rbc1.at<uchar>(i,j) = 255;
 			else
 				rbc1.at<uchar>(i,j) = 0;
@@ -132,52 +121,28 @@ int main(int argc, char *argv[]){
 
 	for (int i=0; i<rbc2.rows; i++)
 		for (int j=0; j<rbc2.cols; j++)
-			if (rbc2.at<uchar>(i,j)<180 && rbc2.at<uchar>(i,j)!=0)
+			if (rbc2.at<uchar>(i,j)<INTENSITY_RBC && rbc2.at<uchar>(i,j)!=0)
 				rbc2.at<uchar>(i,j) = 255;
 			else
 				rbc2.at<uchar>(i,j) = 0;
 
-	GaussianBlur(rbc2,rbc2, Size(11, 11), 0, 0);
-	namedWindow("rbc2",WINDOW_NORMAL);
-	resizeWindow("rbc2", 600,600);
-	imshow("rbc2", rbc2);
+	GaussianBlur(rbc2,rbc2, Size(BLUR_DIM_RBC, BLUR_DIM_RBC), 0, 0);
+	// namedWindow("rbc2",WINDOW_NORMAL);
+	// resizeWindow("rbc2", 600,600);
+	// imshow("rbc2", rbc2);
 
-	namedWindow("green",WINDOW_NORMAL);
-	resizeWindow("green", 600,600);
-	imshow("green", green);
+	// namedWindow("green",WINDOW_NORMAL);
+	// resizeWindow("green", 600,600);
+	// imshow("green", green);
 
 	int count3 = count(wbc,1);
 	int count1 = count(rbc1);
 	int count2 = count(rbc2);
-	cout<<count1<<"  "<<count2<<endl;
+	// cout<<count1<<"  "<<count2<<endl;
 	if (count1 > count2)
 		cout<<"RBC: "<<count1<<endl;
 	else
 		cout<<"RBC: "<<count2<<endl;
 	cout<<"WBC: "<<count3<<endl;
 	cout<<endl;
-
-
-	// gs = Mat::zeros(img.size(), CV_8U);
-	// cvtColor(img, hsv, CV_RGB2HSV);
-	// imshow("gs", gs);
-
-	// createTrackbar("A", "win", &thresh, 10, on_trackbar2);
-	// setMouseCallback("win", onClick, NULL);
-
-		/*
-	Mat gs, hsv;
-	cvtColor(img,gs,CV_RGB2GRAY);
-	cvtColor(img, hsv, CV_RGB2HSV);
-	
-	imshow("test image", img);
-	imshow("grayscale", gs);
-	imshow("hsv", hsv);
-	*/
-
-	//Mat hsv;
-	//cvtColor(img, hsv, CV_RGB2HSV);
-	//imshow("hsv",hsv);
-
-	waitKey(0);
 }

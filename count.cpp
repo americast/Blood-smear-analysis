@@ -8,7 +8,7 @@ using namespace std;
 
 Mat img, gs, hsv;
 
-int count(Mat img)
+int count(Mat img, int type=0)
 {
 
 	Mat dist;
@@ -20,18 +20,37 @@ int count(Mat img)
 	namedWindow("thresh",WINDOW_NORMAL);
 	resizeWindow("thresh", 600,600);
 	// imwrite("thresh.jpg",thresh);
-	threshold(dist, dist, .4, 1., CV_THRESH_BINARY);
-	// imshow("thresh", dist);
+	Mat dist2 = dist.clone();
+	if (type)
+		threshold(dist, dist, .4, 1., CV_THRESH_BINARY);
+	else
+	{
+		threshold(dist, dist, .34, 1., CV_THRESH_BINARY);
+		threshold(dist2, dist2, .4, 1., CV_THRESH_BINARY);
+	}
+
+	// for (int i =0; i< dist.rows; i++)
+	// 	for (int j=0; j<dist.cols; j++)
+	// 		if (dist.at<uchar>(i,j)>0.3)
+	// 			dist.at<uchar>(i,j)=1;
+	// 		else
+	// 			dist.at<uchar>(i,j)=0;
+	imshow("thresh", dist);
 	// cvtColor(dist, dist, CV_BGR2GRAY);
 	Mat now;
+	Mat now2;
 
 	dist.convertTo(now, CV_8U);
+	dist2.convertTo(now2, CV_8U);
 	// cvtColor(dist, dist, CV_BGR2GRAY);
 
 	vector<vector<Point> > contours;
+	vector<vector<Point> > contours2;
 	vector<Vec4i> hierarchy;
+	vector<Vec4i> hierarchy2;
 	// RNG rng(12345);
 	findContours( now, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
+	findContours( now2, contours2, hierarchy2, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
 
 	// Ptr<SimpleBlobDetector> detector = SimpleBlobDetector::create();
 	// // Detect blobs.
@@ -45,7 +64,13 @@ int count(Mat img)
 	 
 	// Show blobs
 	imshow("thresh", dist );
-	return contours.size();
+	cout<<"contours "<<contours.size()<<" "<<contours2.size()<<endl;
+	if (contours2.size() > 120)
+		return contours2.size();
+	if (contours.size() > contours2.size())
+		return contours.size();
+	else
+		return contours2.size();
 }
 int main(int argc, char *argv[]){
 	
@@ -121,14 +146,15 @@ int main(int argc, char *argv[]){
 	resizeWindow("green", 600,600);
 	imshow("green", green);
 
+	int count3 = count(wbc,1);
 	int count1 = count(rbc1);
 	int count2 = count(rbc2);
-	// cout<<count1<<"  "<<count2<<endl;
+	cout<<count1<<"  "<<count2<<endl;
 	if (count1 > count2)
 		cout<<"RBC: "<<count1<<endl;
 	else
 		cout<<"RBC: "<<count2<<endl;
-	cout<<"WBC: "<<count(wbc)<<endl;
+	cout<<"WBC: "<<count3<<endl;
 	cout<<endl;
 
 

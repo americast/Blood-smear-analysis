@@ -83,7 +83,7 @@ int main(int argc, char *argv[])
 	cvtColor(sat, sat, CV_RGB2GRAY);
 	cvtColor(green, green, CV_RGB2GRAY);
 
-	GaussianBlur(img,img, Size(3, 3), 0, 0);
+	GaussianBlur(rbc1,rbc1, Size(3, 3), 0, 0);
 	GaussianBlur(wbc,wbc, Size(9, 9), 0, 0);
 
 	for (int i=0;i<hsv.rows; i++)
@@ -91,7 +91,7 @@ int main(int argc, char *argv[])
 		{
 			sat.at<uchar>(i,j) = hsv.at<Vec3b>(i,j)[1];
 			green.at<uchar>(i,j) = org.at<Vec3b>(i,j)[1];
-			if(int(sat.at<uchar>(i,j)>50))
+			if(int(sat.at<uchar>(i,j) > SATURATION_WBC))
 			{
 				wbc.at<uchar>(i,j) = 255;
 				rbc1.at<uchar>(i,j) = 0;

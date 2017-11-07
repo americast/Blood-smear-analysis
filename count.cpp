@@ -8,7 +8,7 @@ using namespace std;
 
 Mat img, gs, hsv;
 
-void count(Mat img)
+int count(Mat img)
 {
 
 	Mat dist;
@@ -45,7 +45,7 @@ void count(Mat img)
 	 
 	// Show blobs
 	imshow("thresh", dist );
-	cout<<contours.size()<<endl;
+	return contours.size();
 }
 int main(int argc, char *argv[]){
 	
@@ -54,50 +54,81 @@ int main(int argc, char *argv[]){
 	if (argc>1)
 		img = imread(argv[1]);
 	else
-		img = imread("Blood Images Dataset/image_150310_008.JPG");
-	Mat hsv, img2 = img.clone();
+	{
+		cerr<<"Please provide path to image as argument.\n";
+		exit(-1);
+	}
+	Mat hsv, wbc = img.clone();
+	Mat rbc1;
 	Mat sat = img.clone();
+	Mat green = img.clone();
 	Mat org = img.clone();
 	cvtColor(img, hsv, CV_BGR2HSV);
-	cvtColor(img, img, CV_RGB2GRAY);
-	cvtColor(img2, img2, CV_RGB2GRAY);
+	cvtColor(img, rbc1, CV_RGB2GRAY);
+	cvtColor(wbc, wbc, CV_RGB2GRAY);
 	cvtColor(sat, sat, CV_RGB2GRAY);
+	cvtColor(green, green, CV_RGB2GRAY);
 
 	GaussianBlur(img,img, Size(3, 3), 0, 0);
-	GaussianBlur(img2,img2, Size(9, 9), 0, 0);
+	GaussianBlur(wbc,wbc, Size(9, 9), 0, 0);
 
 	for (int i=0;i<hsv.rows; i++)
 		for (int j=0; j<hsv.cols; j++)
 		{
 			sat.at<uchar>(i,j) = hsv.at<Vec3b>(i,j)[1];
+			green.at<uchar>(i,j) = org.at<Vec3b>(i,j)[1];
 			if(int(sat.at<uchar>(i,j)>50))
 			{
-				img2.at<uchar>(i,j) = 255;
-				img.at<uchar>(i,j) = 0;
+				wbc.at<uchar>(i,j) = 255;
+				rbc1.at<uchar>(i,j) = 0;
 			}
 			else
-				img2.at<uchar>(i,j) = 0;
+				wbc.at<uchar>(i,j) = 0;
 		}
 
 
-	fastNlMeansDenoising(img2, img2, 3, 7);
-	GaussianBlur(img2,img2, Size(71, 71), 0, 0);
-	// medianBlur(img2,img2,5);
+	fastNlMeansDenoising(wbc, wbc, 3, 7);
+	GaussianBlur(wbc,wbc, Size(71, 71), 0, 0);
+	// medianBlur(wbc,wbc,5);
 
 	namedWindow("sat",WINDOW_NORMAL);
 	resizeWindow("sat", 600,600);
-	imshow("sat", img2);
+	imshow("sat", wbc);
 
-	for (int i=0; i<img.rows; i++)
-		for (int j=0; j<img.cols; j++)
-			if (img.at<uchar>(i,j)>180)
-				img.at<uchar>(i,j) = 0;
+	Mat rbc2 = rbc1.clone();
+	for (int i=0; i<rbc1.rows; i++)
+		for (int j=0; j<rbc1.cols; j++)
+			if (org.at<Vec3b>(i,j)[1]<145 && rbc1.at<uchar>(i,j)!=0)
+				rbc1.at<uchar>(i,j) = 255;
 			else
-				img.at<uchar>(i,j) = 255;
+				rbc1.at<uchar>(i,j) = 0;
 
 
-	cout<<"RBC: "; count(img);
-	cout<<"WBC: "; count(img2);
+
+	for (int i=0; i<rbc2.rows; i++)
+		for (int j=0; j<rbc2.cols; j++)
+			if (rbc2.at<uchar>(i,j)<180 && rbc2.at<uchar>(i,j)!=0)
+				rbc2.at<uchar>(i,j) = 255;
+			else
+				rbc2.at<uchar>(i,j) = 0;
+
+	GaussianBlur(rbc2,rbc2, Size(11, 11), 0, 0);
+	namedWindow("rbc2",WINDOW_NORMAL);
+	resizeWindow("rbc2", 600,600);
+	imshow("rbc2", rbc2);
+
+	namedWindow("green",WINDOW_NORMAL);
+	resizeWindow("green", 600,600);
+	imshow("green", green);
+
+	int count1 = count(rbc1);
+	int count2 = count(rbc2);
+	// cout<<count1<<"  "<<count2<<endl;
+	if (count1 > count2)
+		cout<<"RBC: "<<count1<<endl;
+	else
+		cout<<"RBC: "<<count2<<endl;
+	cout<<"WBC: "<<count(wbc)<<endl;
 	cout<<endl;
 
 

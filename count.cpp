@@ -142,11 +142,6 @@ int main(int argc, char *argv[])
 	vector<vector<Point> > count2 = count(rbc2);
 	// cout<<count1<<"  "<<count2<<endl;
 
-	namedWindow("RBC final",WINDOW_NORMAL);
-	resizeWindow("RBC final", 600,600);
-
-	namedWindow("WBC final",WINDOW_NORMAL);
-	resizeWindow("WBC final", 600,600);
 
 	Mat display_rbc(rbc1.rows, rbc1.cols, CV_8UC1, Scalar(0));
 	Mat display_wbc(rbc1.rows, rbc1.cols, CV_8UC1, Scalar(0));
@@ -155,23 +150,51 @@ int main(int argc, char *argv[])
 	{
 		cout<<"RBC: "<<count1.size()<<endl;
 		for (int i=0; i<count1.size(); i++)
-			for(int j=0; j<count1[i].size(); j++)
-				display_rbc.at<uchar>(count1[i][j].y, count1[i][j].x) = 255;
+		{
+			for(int j=0; j<count1[i].size()-1; j++)
+			{
+				Point pt1 = count1[i][j];
+				Point pt2 = count1[i][j+1];
+				line(org, pt1, pt2, CV_RGB(255, 0, 0), 3, 8, 0);
+			}
+			line(org, count1[i][count1[i].size()-1], count1[i][0], CV_RGB(255, 0, 0), 3, 8, 0);
+		}
 	}
 	else
 	{
 		cout<<"RBC: "<<count2.size()<<endl;
 		for (int i=0; i<count2.size(); i++)
-			for(int j=0; j<count2[i].size(); j++)
-				display_rbc.at<uchar>(count2[i][j].y, count2[i][j].x) = 255;
+		{
+			for(int j=0; j<count2[i].size()-1; j++)
+			{
+				Point pt1 = count2[i][j];
+				Point pt2 = count2[i][j+1];
+				line(org, pt1, pt2, CV_RGB(255, 0, 0), 3, 8, 0);
+
+			}
+			line(org, count2[i][count2[i].size()-1], count2[i][0], CV_RGB(255, 0, 0), 3, 8, 0);
+		}
 
 	}
 	cout<<"WBC: "<<count3.size()<<endl;
 	for (int i=0; i<count3.size(); i++)
-		for(int j=0; j<count3[i].size(); j++)
-			display_wbc.at<uchar>(count3[i][j].y, count3[i][j].x) = 255;
+	{
+		for(int j=0; j<count3[i].size()-1; j++)
+		{
+			Point pt1 = count3[i][j];
+			Point pt2 = count3[i][j+1];
+			line(org, pt1, pt2, CV_RGB(0, 0, 255), 3, 8, 0);
+		}
+		line(org,  count3[i][count3[i].size()-1], count3[i][0], CV_RGB(0, 0, 255), 3, 8, 0);
+	}
 	cout<<endl;
-	imshow("RBC final",display_rbc);
-	imshow("WBC final",display_wbc);
+	namedWindow("Final",WINDOW_NORMAL);
+	resizeWindow("Final", 600,600);
+	imshow("Final",org);
+	// imshow("WBC final",display_wbc);
+	char final[100];
+	strcpy(final,argv[1]);
+	strcat(final,"_final.jpg");
+	imwrite(final,org);
 	waitKey(0);
 }

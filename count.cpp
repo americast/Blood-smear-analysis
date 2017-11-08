@@ -14,7 +14,7 @@
 using namespace cv;
 using namespace std;
 
-int count(Mat img, int type=0)
+vector<vector<Point> > count(Mat img, int type=0)
 {
 
 	Mat dist;
@@ -53,12 +53,14 @@ int count(Mat img, int type=0)
 	// Show blobs
 	// imshow("thresh", dist );
 	// cout<<"contours "<<contours.size()<<" "<<contours2.size()<<endl;
+
+
 	if (contours2.size() > LOW_LUM_COUNT)
-		return contours2.size();
+		return contours2;
 	if (contours.size() > contours2.size())
-		return contours.size();
+		return contours;
 	else
-		return contours2.size();
+		return contours2;
 }
 
 
@@ -135,14 +137,41 @@ int main(int argc, char *argv[])
 	// resizeWindow("green", 600,600);
 	// imshow("green", green);
 
-	int count3 = count(wbc,1);
-	int count1 = count(rbc1);
-	int count2 = count(rbc2);
+	vector<vector<Point> > count3 = count(wbc,1);
+	vector<vector<Point> > count1 = count(rbc1);
+	vector<vector<Point> > count2 = count(rbc2);
 	// cout<<count1<<"  "<<count2<<endl;
-	if (count1 > count2)
-		cout<<"RBC: "<<count1<<endl;
+
+	namedWindow("RBC final",WINDOW_NORMAL);
+	resizeWindow("RBC final", 600,600);
+
+	namedWindow("WBC final",WINDOW_NORMAL);
+	resizeWindow("WBC final", 600,600);
+
+	Mat display_rbc(rbc1.rows, rbc1.cols, CV_8UC1, Scalar(0));
+	Mat display_wbc(rbc1.rows, rbc1.cols, CV_8UC1, Scalar(0));
+	// Mat display_wbc = zeros(wbc.rows, wbc.cols);
+	if (count1.size() > count2.size())
+	{
+		cout<<"RBC: "<<count1.size()<<endl;
+		for (int i=0; i<count1.size(); i++)
+			for(int j=0; j<count1[i].size(); j++)
+				display_rbc.at<uchar>(count1[i][j].y, count1[i][j].x) = 255;
+	}
 	else
-		cout<<"RBC: "<<count2<<endl;
-	cout<<"WBC: "<<count3<<endl;
+	{
+		cout<<"RBC: "<<count2.size()<<endl;
+		for (int i=0; i<count2.size(); i++)
+			for(int j=0; j<count2[i].size(); j++)
+				display_rbc.at<uchar>(count2[i][j].y, count2[i][j].x) = 255;
+
+	}
+	cout<<"WBC: "<<count3.size()<<endl;
+	for (int i=0; i<count3.size(); i++)
+		for(int j=0; j<count3[i].size(); j++)
+			display_wbc.at<uchar>(count3[i][j].y, count3[i][j].x) = 255;
 	cout<<endl;
+	imshow("RBC final",display_rbc);
+	imshow("WBC final",display_wbc);
+	waitKey(0);
 }

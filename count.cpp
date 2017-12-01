@@ -188,9 +188,9 @@ int main(int argc, char *argv[])
 		line(org,  count3[i][count3[i].size()-1], count3[i][0], CV_RGB(0, 0, 255), 3, 8, 0);
 	}
 	cout<<endl;
-	namedWindow("Final",WINDOW_NORMAL);
-	resizeWindow("Final", 600,600);
-	imshow("Final",org);
+	// namedWindow("Final",WINDOW_NORMAL);
+	// resizeWindow("Final", 600,600);
+	// imshow("Final",org);
 	// imshow("WBC final",display_wbc);
 	char final[100];
 	strcpy(final,argv[1]);
